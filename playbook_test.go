@@ -49,6 +49,13 @@ func TestPlaybookFromShortPlaybook(t *testing.T) {
 	}
 	if len(playbook.Hosts) <= 0 {
 		t.Fatalf("Playbook didn't contain any hosts")
-	}	
-		
+	}
+	if len(playbook.Vars) <= 0 {
+		t.Fatalf("Expected at least one Var in shortPlaybook\n")
+	}
+	if len(playbook.Tasks) <= 0 {
+		t.Fatalf("Expected at least one Task in shortPlaybook\n")
+	}		
 }
+
+
