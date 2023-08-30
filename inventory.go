@@ -25,6 +25,7 @@ func (i *InventoryError) Error() string {
 
 type Host struct {
 	Vars map[string]string `yaml:vars,omit=empty`
+	name string
 }
 
 type HostGroup struct {
@@ -114,52 +115,84 @@ func (g HostGroup) gatherHosts(hostname string) (*Host, error) {
 // will take precedence over the variables in the upper/outer hostgroups
 // should a hostgroup name match one of the names passed as a parameter
 // all hosts in that hostgroup will be a part of the returned []*Host
-func (i Inventory) ExecutionHosts(names []string) ([]*Host, error) {
-	hosts := make([]*Host, 0)
-
-	for _, name := range names {
-		hostResults, err := i.gatherHost(name)
-		if err != nil {
-			continue
-		}
-		hosts = append(hosts, hostResults)
-		hostGroupResults, err := i.gatherHostGroups(name)
-		hosts = extend(hosts, hostGroupResults)
-	}
-	if len(hosts) <= 0 {
-		return nil, &InventoryError{
-			errorCode: HostNotFoundErrorCode,
-			Err:       errors.New(fmt.Sprintf("Unable to locate hosts: %v\n", names)),
-		}
-	}
-	return hosts, nil
+func (i Inventory) ExecutionHosts(names []string) []*Host {
+	return i.All.findHosts(names)
 }
 
-func (i Inventory) gatherHostgroups(name string) ([]*Host, error) {
-	hosts := make([]*Host, 0)
-	return hosts, nil
+func (g HostGroup) findHosts(names []string) []*Host {
+	groupHosts := g.findHostsInGroup(names)
+	groupHosts = extend(groupHosts, g.findHostsInChildren(names))
+	return groupHosts
 }
 
-func (g HostGroup) collect() []*Host {
+func (g HostGroup) findHostsInGroup(names []string) []*Host {
+	groupHosts := make([]*Host, 0)
+	for _, searchName := range names {
+		for hostKey, host := range g.Hosts {
+			if hostKey == searchName {
+				newHost := &Host{
+					Vars: make(map[string]string, len(host.Vars)),
+				}
+				for varKey, varValue := range g.Vars {
+					newHost.Vars[varKey] = varValue
+				}
+				for varKey, varValue := range host.Vars {
+					newHost.Vars[varKey] = varValue
+				}
+				newHost.name = hostKey
+				groupHosts = append(groupHosts, newHost)
+				
+			}
+		}
+	}
+	return groupHosts
+}
+
+func (g HostGroup) findHostsInChildren(names []string) []*Host {
 	hosts := make([]*Host, 0)
-	for hostname, host := range g.Hosts {
+	for _, searchName := range names {
+		for subgroupName, subgroup := range g.Children {
+			if subgroupName == searchName {
+				foundHosts := subgroup.collectAllHosts()
+				hosts = extend(hosts, foundHosts)
+				continue
+			}
+			foundHosts := subgroup.findHostsInChildren(names)
+			hosts = extend(hosts, foundHosts)
+			hostsInSubgroup := subgroup.findHostsInGroup(names)
+			hosts = extend(hosts, hostsInSubgroup)
+		}
+	}
+	return hosts
+}
+
+func (g HostGroup) collectAllHosts() []*Host {
+	hosts := make([]*Host, 0)
+	for hostKey, host := range g.Hosts {
 		newHost := &Host{
-			Vars: make(map[string]string, len(host.Vars)),
+			Vars: make(map[string]string, 0),
 		}
-		for varKey, value := range host.Vars {
-			newHost.Vars[varKey] = value
+		for varKey, varValue := range g.Vars {
+			newHost.Vars[varKey] = varValue
 		}
+		for varKey, varValue := range host.Vars {
+			newHost.Vars[varKey] = varValue
+		}
+		newHost.name = hostKey
 		hosts = append(hosts, newHost)
-		
 	}
-	for _, hostGroup := range g.Children {
-		subHostGroupResults := hostGroup.collect()
-		hosts = extend(hosts, subHostsGroupResults)
+	for _, subgroup := range g.Children {
+		hosts = extend(hosts, subgroup.collectAllHosts())
 	}
 	return hosts
 }
 
 func extend(a, b []*Host) []*Host {
+
+	if len(b) <= 0 {
+		return a
+	}
+
 	c := make([]*Host, len(a)+len(b))
 	index := 0
 	for _, value := range a {
