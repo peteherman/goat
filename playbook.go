@@ -3,6 +3,7 @@ package main
 import (
 	"gopkg.in/yaml.v3"
 	"os"
+	"fmt"
 )
 
 type Playbook struct {
@@ -14,7 +15,7 @@ type Playbook struct {
 
 type CommandTask struct {
 	Name    string `yaml:name`
-	Command string `yaml:cmd`
+	Cmd string `yaml:cmd`
 }
 
 type TaskResult interface {
@@ -23,9 +24,7 @@ type TaskResult interface {
 	ReturnCode() int
 }
 
-type TaskName string
-
-type PlaybookResult map[TaskName]map[string]TaskResult
+type PlaybookResult map[string]map[string]TaskResult
 
 func PlaybookFromFilepath(filepath string) (Playbook, error) {
 	contents, err := os.ReadFile(filepath)
@@ -50,10 +49,12 @@ func playbookFromContents(contents []byte) (Playbook, error) {
 
 func (p Playbook) Execute(inventory Inventory) PlaybookResult {
 
-	//executionHosts := inventory.ExecutionHosts(p.Hosts)
+	executionHosts := inventory.ExecutionHosts(p.Hosts)
+	for _, task := range p.Tasks {
 
-	// for _, task := range p.Tasks {
-
-	// }
+		for _, host := range executionHosts {
+			fmt.Printf("%v should execute this: %v\n", host.name, task)
+		}
+	}
 	return make(PlaybookResult, 0)
 }

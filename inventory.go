@@ -116,6 +116,11 @@ func (g HostGroup) gatherHosts(hostname string) (*Host, error) {
 // should a hostgroup name match one of the names passed as a parameter
 // all hosts in that hostgroup will be a part of the returned []*Host
 func (i Inventory) ExecutionHosts(names []string) []*Host {
+	for _, name := range names {
+		if name == "all" {
+			return i.All.collectAllHosts()
+		}
+	}
 	return i.All.findHosts(names)
 }
 
@@ -148,6 +153,14 @@ func (g HostGroup) findHostsInGroup(names []string) []*Host {
 	return groupHosts
 }
 
+func (h *Host) addParentVars(parentGroup HostGroup) {
+	for varKey, varValue := range parentGroup.Vars {
+		if _, keyExists := h.Vars[varKey]; !keyExists {
+			h.Vars[varKey] = varValue
+		}
+	}
+}
+
 func (g HostGroup) findHostsInChildren(names []string) []*Host {
 	hosts := make([]*Host, 0)
 	for _, searchName := range names {
@@ -161,6 +174,9 @@ func (g HostGroup) findHostsInChildren(names []string) []*Host {
 			hosts = extend(hosts, foundHosts)
 			hostsInSubgroup := subgroup.findHostsInGroup(names)
 			hosts = extend(hosts, hostsInSubgroup)
+			for _, host := range hosts {
+				host.addParentVars(g)
+			}
 		}
 	}
 	return hosts
