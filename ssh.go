@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"time"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -76,6 +77,7 @@ func (s *SSHConnection) Connect(host *Host) error {
 			ssh.Password(password),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+		Timeout: time.Second * 5,
 	}
 	address := host.name
 	if newAddress, keyExists := host.Vars["address"]; keyExists {

@@ -3,3 +3,4 @@ docker-compose.yaml
 goat
 test_key
 test_key.pub
+test-data/*
