@@ -26,17 +26,23 @@ func (s *SSHConnection) Status() int {
 	return FailedConnection
 }
 
-func (s *SSHConnection) Run(command string) (TaskResult, error) {
+func (s *SSHConnection) Run(command string) TaskResult {
 	if status := s.Status(); status != SuccessfulConnection {
 		if status == FailedConnection {
-			return SSHCommandResult{}, errors.New("Connection failed")
+			return SSHCommandResult{
+				err: errors.New("Connection failed"),
+			}
 		}
-		return SSHCommandResult{}, errors.New("Connection not initiated")
+		return SSHCommandResult{
+			err: errors.New("Connection not initiated"),
+		}
 	}
 	session, err := s.Client.NewSession()
 	if err != nil {
 		s.connError = err
-		return SSHCommandResult{}, errors.New("Unable to create session on host\n")
+		return SSHCommandResult{
+			err: errors.New("Unable to create session on host\n"),
+		}
 	}
 	defer session.Close()
 	var stdout bytes.Buffer
@@ -48,8 +54,8 @@ func (s *SSHConnection) Run(command string) (TaskResult, error) {
 	return SSHCommandResult{
 		stdoutBuffer: stdout,
 		stderrBuffer: stderr,
-		returnCode:   0,
-	}, nil
+		err:          err,
+	}
 }
 
 func (s *SSHConnection) Connect(host *Host) error {
@@ -95,7 +101,7 @@ func (s *SSHConnection) Connect(host *Host) error {
 type SSHCommandResult struct {
 	stdoutBuffer bytes.Buffer
 	stderrBuffer bytes.Buffer
-	returnCode   int
+	err          error
 }
 
 func (s SSHCommandResult) StdoutBytes() []byte {
@@ -106,14 +112,14 @@ func (s SSHCommandResult) StderrBytes() []byte {
 	return s.stderrBuffer.Bytes()
 }
 
-func (s SSHCommandResult) ReturnCode() int {
-	return s.returnCode
-}
-
 func (s SSHCommandResult) Stdout() string {
 	return s.stdoutBuffer.String()
 }
 
 func (s SSHCommandResult) Stderr() string {
 	return s.stderrBuffer.String()
+}
+
+func (s SSHCommandResult) Error() error {
+	return s.err
 }

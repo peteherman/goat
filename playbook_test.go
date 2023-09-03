@@ -21,6 +21,30 @@ tasks:
     cmd: whoami
 `)
 
+var twoPlaybookContents = []byte(`
+name: Short Playbook
+hosts: 
+  - all
+vars: 
+  sample_var: here
+tasks:
+  - name: task one
+    cmd: whoami
+  - name: task two
+    cmd: arp -a
+`)
+
+var errCmdPlaybook = []byte(`
+name: Short Playbook
+hosts: 
+  - all
+vars: 
+  sample_var: here
+tasks:
+  - name: task one
+    cmd: not a command
+`)
+
 func TestPlaybookFromNonExistentFile(t *testing.T) {
 	_, err := PlaybookFromFilepath("nonexistent")
 	if err == nil {
@@ -159,4 +183,81 @@ func testContainersRunning(t *testing.T, containerNames []string) {
 			t.Fatalf("container %v was not found or running!\n", searchName)
 		}
 	}
+}
+
+func TestPlaybookExecuteTwoResults(t *testing.T) {
+	hostGroup := HostGroup{
+		Hosts: make(map[string]Host, 1),
+	}
+
+	dockerSSHContainer1 := dockerSSH1Host()
+	hostGroup.Hosts["ssh1"] = dockerSSHContainer1
+
+	inventory := Inventory{
+		All: hostGroup,
+	}
+
+	playbook := createTestPlaybook(t, twoPlaybookContents)
+
+	testContainersRunning(t, []string{"ssh1"})
+	
+	playbookResults := playbook.Execute(inventory)
+	if len(playbookResults) <= 0 {
+		t.Fatalf("Expected one task result for small playbook!\n")
+	}
+	expectedTaskName := "task one"
+	if _, keyExists := playbookResults[expectedTaskName]; !keyExists {
+		t.Fatalf("Expected %v in playbookResults: %v\n", expectedTaskName, playbookResults)
+	}
+
+	expectedHostname := "ssh1"
+	if _, keyExists := playbookResults[expectedTaskName][expectedHostname]; !keyExists {
+		t.Fatalf("Expected %v in playbookResults: %v\n", expectedHostname, playbookResults)
+	}
+
+	expectedTaskName = "task two"
+	if _, keyExists := playbookResults[expectedTaskName]; !keyExists {
+		t.Fatalf("Expected %v in playbookResults: %v\n", expectedTaskName, playbookResults)
+	}
+
+	expectedHostname = "ssh1"
+	if _, keyExists := playbookResults[expectedTaskName][expectedHostname]; !keyExists {
+		t.Fatalf("Expected %v in playbookResults: %v\n", expectedHostname, playbookResults)
+	}	
+}
+
+
+func TestPlaybookExecuteErrResults(t *testing.T) {
+	hostGroup := HostGroup{
+		Hosts: make(map[string]Host, 1),
+	}
+
+	dockerSSHContainer1 := dockerSSH1Host()
+	hostGroup.Hosts["ssh1"] = dockerSSHContainer1
+
+	inventory := Inventory{
+		All: hostGroup,
+	}
+
+	playbook := createTestPlaybook(t, errCmdPlaybook)
+
+	testContainersRunning(t, []string{"ssh1"})
+	
+	playbookResults := playbook.Execute(inventory)
+	if len(playbookResults) <= 0 {
+		t.Fatalf("Expected one task result for small playbook!\n")
+	}
+	expectedTaskName := "task one"
+	if _, keyExists := playbookResults[expectedTaskName]; !keyExists {
+		t.Fatalf("Expected %v in playbookResults: %v\n", expectedTaskName, playbookResults)
+	}
+
+	expectedHostname := "ssh1"
+	if _, keyExists := playbookResults[expectedTaskName][expectedHostname]; !keyExists {
+		t.Fatalf("Expected %v in playbookResults: %v\n", expectedHostname, playbookResults)
+	}
+
+	if playbookResults["task one"]["ssh1"].Error() == nil {
+		t.Fatalf("Expected task one - host ss1 to have error")
+	}		
 }

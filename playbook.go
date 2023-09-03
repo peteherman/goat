@@ -54,7 +54,7 @@ type executingHost struct {
 
 type Connection interface {
 	Connect(*Host) error
-	Run(string) (TaskResult, error)
+	Run(string) TaskResult
 	Status() int
 	SetConnectionError(error)
 }
@@ -64,9 +64,8 @@ type TaskResult interface {
 	StdoutBytes() []byte
 	Stderr() string
 	StderrBytes() []byte
-	ReturnCode() int
+	Error() error
 }
-
 
 
 func (p Playbook) Execute(inventory Inventory) PlaybookResult {
@@ -94,9 +93,8 @@ func (p Playbook) Execute(inventory Inventory) PlaybookResult {
 					continue
 				}
 			}
-			cmdResult, err := executionHost.conn.Run(task.Cmd)
+			cmdResult := executionHost.conn.Run(task.Cmd)
 			result[task.Name][host.name] = cmdResult
-			fmt.Printf("Got error: %v\n", err)
 		}
 	}
 	return result
