@@ -33,14 +33,5 @@ func main() {
 		os.Exit(1)
 	}
 	
-	results := playbook.Execute(inventory)
-	for taskName := range results {
-		fmt.Printf("Task: %v\n", taskName)
-		for hostname, hostRes := range results[taskName] {
-			fmt.Printf("\t%v\n", hostname)
-			fmt.Printf("\t\tstdout: %v\n", hostRes.Stdout())
-			fmt.Printf("\t\tstderr: %v\n", hostRes.Stderr())
-			fmt.Printf("\t\terrors: %v\n", hostRes.Error())			
-		}
-	}
+	playbook.Execute(inventory)
 }

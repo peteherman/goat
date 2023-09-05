@@ -71,6 +71,7 @@ type TaskResult interface {
 func (p Playbook) Execute(inventory Inventory) PlaybookResult {
 
 	hosts := inventory.ExecutionHosts(p.Hosts)
+	stdoutFormatter := StdoutFormatter{}
 	executionHosts := make(map[string]executingHost, len(hosts))
 	for _, host := range hosts {
 		hostAddress := fmt.Sprintf("%v", host)
@@ -95,6 +96,7 @@ func (p Playbook) Execute(inventory Inventory) PlaybookResult {
 			}
 			cmdResult := executionHost.conn.Run(task.Cmd)
 			result[task.Name][host.name] = cmdResult
+			fmt.Printf(stdoutFormatter.Output(task.Name, host.name, cmdResult))
 		}
 	}
 	return result
