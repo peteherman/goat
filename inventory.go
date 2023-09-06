@@ -146,7 +146,7 @@ func (g HostGroup) findHostsInGroup(names []string) []*Host {
 				}
 				newHost.name = hostKey
 				groupHosts = append(groupHosts, newHost)
-				
+
 			}
 		}
 	}

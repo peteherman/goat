@@ -256,7 +256,7 @@ func TestHostGroupGatherHostNotFoundErr(t *testing.T) {
 				t.Fatalf("Error should've been HostNotFound: %v\n", err)
 			}
 		}
-	}	
+	}
 }
 
 func TestGatherWithNestedHost(t *testing.T) {
@@ -284,126 +284,6 @@ func TestGatherWithNestedHost(t *testing.T) {
 		t.Fatalf("Host outer only variable wasn't written\n")
 	}
 }
-
-// func TestExecutionHostsWithHostnames(t *testing.T) {
-// 	tmpDir, err := os.MkdirTemp("", t.Name())
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	tmpFilename := filepath.Join(tmpDir, fmt.Sprintf("%v.yaml", t.Name()))
-// 	err = os.WriteFile(tmpFilename, triplyNestedInventory, 0666)
-// 	if err != nil {
-// 		t.Fatalf("Error when creating test directory\n")
-// 	}
-// 	inventory, err := InventoryFromFilepath(tmpFilename)
-// 	if err != nil {
-// 		t.Fatalf("Received error on Inventory Parse from file: %v\n", err)
-// 	}
-
-// 	hosts := inventory.ExecutionHosts([]string{"ssh2"})
-// 	if len(hosts) <= 0 {
-// 		t.Fatalf("Didn't receive any hosts when trying to get Execution Hosts\n")
-// 	}
-// 	if len(hosts[0].Vars) <= 0 {
-// 		t.Fatalf("Host didn't contain any vars\n")
-// 	}
-// }
-
-// func TestExecutionHostsWithHostGroupName(t *testing.T) {
-// 	tmpDir, err := os.MkdirTemp("", t.Name())
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	tmpFilename := filepath.Join(tmpDir, fmt.Sprintf("%v.yaml", t.Name()))
-// 	err = os.WriteFile(tmpFilename, triplyNestedInventory, 0666)
-// 	if err != nil {
-// 		t.Fatalf("Error when creating test directory\n")
-// 	}
-// 	inventory, err := InventoryFromFilepath(tmpFilename)
-// 	if err != nil {
-// 		t.Fatalf("Received error on Inventory Parse from file: %v\n", err)
-// 	}
-
-// 	hosts := inventory.ExecutionHosts([]string{"inner"})
-// 	if len(hosts) <= 0 {
-// 		t.Fatalf("Didn't receive any hosts when trying to get Execution Hosts\n")
-// 	}
-// 	if len(hosts[0].Vars) <= 0 {
-// 		t.Fatalf("Host didn't contain any vars\n")
-// 	}
-// }
-
-// func TestExecutionHostsWithHostNameAndGroupNameMatch(t *testing.T) {
-// 	tmpDir, err := os.MkdirTemp("", t.Name())
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	tmpFilename := filepath.Join(tmpDir, fmt.Sprintf("%v.yaml", t.Name()))
-// 	err = os.WriteFile(tmpFilename, triplyNestedInventory, 0666)
-// 	if err != nil {
-// 		t.Fatalf("Error when creating test directory\n")
-// 	}
-// 	inventory, err := InventoryFromFilepath(tmpFilename)
-// 	if err != nil {
-// 		t.Fatalf("Received error on Inventory Parse from file: %v\n", err)
-// 	}
-
-// 	hosts := inventory.ExecutionHosts([]string{"ssh2"})
-// 	if len(hosts) <= 1 {
-// 		t.Fatalf("Didn't receive enough hosts when trying to get Execution Hosts\n")
-// 	}
-// 	if len(hosts[0].Vars) <= 0 {
-// 		t.Fatalf("Host didn't contain any vars\n")
-// 	}
-// }
-
-// func TestExecutionHostsWithMultipleHostnames(t *testing.T) {
-// 	tmpDir, err := os.MkdirTemp("", t.Name())
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	tmpFilename := filepath.Join(tmpDir, fmt.Sprintf("%v.yaml", t.Name()))
-// 	err = os.WriteFile(tmpFilename, triplyNestedInventory, 0666)
-// 	if err != nil {
-// 		t.Fatalf("Error when creating test directory\n")
-// 	}
-// 	inventory, err := InventoryFromFilepath(tmpFilename)
-// 	if err != nil {
-// 		t.Fatalf("Received error on Inventory Parse from file: %v\n", err)
-// 	}
-
-// 	hosts := inventory.ExecutionHosts([]string{"ssh1", "ssh4"})
-// 	if len(hosts) <= 1 {
-// 		t.Fatalf("Didn't receive enough hosts when trying to get Execution Hosts\n")
-// 	}
-// 	if len(hosts[0].Vars) <= 0 {
-// 		t.Fatalf("Host didn't contain any vars\n")
-// 	}
-// }
-
-// func TestExecutionHostsWithAll(t *testing.T) {
-// 	tmpDir, err := os.MkdirTemp("", t.Name())
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
-// 	tmpFilename := filepath.Join(tmpDir, fmt.Sprintf("%v.yaml", t.Name()))
-// 	err = os.WriteFile(tmpFilename, triplyNestedInventory, 0666)
-// 	if err != nil {
-// 		t.Fatalf("Error when creating test directory\n")
-// 	}
-// 	inventory, err := InventoryFromFilepath(tmpFilename)
-// 	if err != nil {
-// 		t.Fatalf("Received error on Inventory Parse from file: %v\n", err)
-// 	}
-
-// 	hosts := inventory.ExecutionHosts([]string{"all"})
-// 	if len(hosts) <= 1 {
-// 		t.Fatalf("Didn't receive enough hosts when trying to get Execution Hosts\n")
-// 	}
-// 	if len(hosts[0].Vars) <= 0 {
-// 		t.Fatalf("Host didn't contain any vars\n")
-// 	}	
-// }
 
 func TestExecutionHostsWithNoGroupMatches(t *testing.T) {
 	inventory, err := buildInventory(t, executionHostsNoGroup)
@@ -437,10 +317,10 @@ func TestExecutionHostsWithOneGroupMatch(t *testing.T) {
 		t.Fatalf("Host didn't contain any vars\n")
 	}
 	for _, host := range hosts {
-		if host.name == "ssh1" 	&& host.Vars["username"] != "inside" {
+		if host.name == "ssh1" && host.Vars["username"] != "inside" {
 			t.Fatalf("Host username is incorrect, should be 'inside' got: %v, %+v\n",
 				hosts[0].Vars["username"], *host)
-			
+
 		}
 	}
 }

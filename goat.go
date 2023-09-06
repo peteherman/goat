@@ -32,6 +32,6 @@ func main() {
 		fmt.Printf("Error when reading playbook file: %v\n", err)
 		os.Exit(1)
 	}
-	
+
 	playbook.Execute(inventory)
 }

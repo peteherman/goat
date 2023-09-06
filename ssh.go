@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"time"
 	"golang.org/x/crypto/ssh"
+	"time"
 )
 
 type SSHConnection struct {
@@ -59,26 +59,30 @@ func (s *SSHConnection) Run(command string) TaskResult {
 	}
 }
 
-func (s *SSHConnection) Connect(host *Host) error {
+func configFromHost(host *Host) (ssh.ClientConfig, error) {
 	username, keyExists := host.Vars["username"]
 	if !keyExists {
-		return errors.New(fmt.Sprintf("Cannot connect to host %v, no username provided\n",
+		return ssh.ClientConfig{}, errors.New(fmt.Sprintf("Cannot connect to host %v, no username provided\n",
 			host.name))
 	}
 	password, keyExists := host.Vars["password"]
 	if !keyExists {
-		return errors.New(fmt.Sprintf("Cannot connect to host %v, no password provided\n",
+		return ssh.ClientConfig{}, errors.New(fmt.Sprintf("Cannot connect to host %v, no password provided\n",
 			host.name))
 	}
 
-	config := &ssh.ClientConfig{
+	config := ssh.ClientConfig{
 		User: username,
 		Auth: []ssh.AuthMethod{
 			ssh.Password(password),
 		},
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		Timeout: time.Second * 5,
+		Timeout:         time.Second * 5,
 	}
+	return config, nil
+}
+
+func uriFromHost(host *Host) string {
 	address := host.name
 	if newAddress, keyExists := host.Vars["address"]; keyExists {
 		address = newAddress
@@ -90,11 +94,22 @@ func (s *SSHConnection) Connect(host *Host) error {
 	}
 
 	uri := fmt.Sprintf("%v:%v", address, port)
+	return uri
+}
 
-	client, err := ssh.Dial("tcp", uri, config)
+func (s *SSHConnection) Connect(host *Host) error {
+
+	config, err := configFromHost(host)
+	if err != nil {
+		return err
+	}
+	uri := uriFromHost(host)
+
+	client, err := ssh.Dial("tcp", uri, &config)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error when connecting to host: %v\n", err))
 	}
+
 	s.Client = client
 
 	return nil
