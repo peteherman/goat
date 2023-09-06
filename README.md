@@ -22,7 +22,11 @@ Getting started with Go Automated Tasking is straightforward. Follow these simpl
 2. Create Configuration: Write a YAML configuration file defining your automation tasks, hosts, and roles.
 3. Execute Tasks: Run GoAT commands to execute your tasks across your infrastructure.
 
-For detailed installation instructions and examples, please refer to the documentation in the Wiki.
+For detailed installation instructions and examples, please refer to the documentation in the [Wiki](https://github.com/peteherman/goat/wiki).
+
+## Current Support
+GoAT has only been tested thus far with Linux hosts. If you intend to use GoAT with windows hosts, use at your own risk! 
+I'd like to include tests with Windows hosts in future releases. For more info on what's to come, checkout the [Wiki](https://github.com/peteherman/goat/wiki)
 
 ## Contact
 If you have any questions, suggestions, or need support, feel free to open an issue
